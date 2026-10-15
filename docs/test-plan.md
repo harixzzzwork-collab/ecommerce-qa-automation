@@ -52,7 +52,9 @@ load testing, and a full security or accessibility audit.
 ## Verified baseline — 15 October 2026
 45 executions passed: 15 cases across three browser engines.
 No failures, flaky results, or skipped tests in this local run.
-GitHub Actions execution has not yet been verified.
+GitHub Actions also passed all 45 executions on Ubuntu on 15 October 2026.
+The test job and report upload both succeeded.
+[Verified CI run](https://github.com/harixzzzwork-collab/ecommerce-qa-automation/actions/runs/38707622408).
 
 ## Remaining coverage
 Separate checks for empty email, empty address, and spaces-only address

@@ -1,5 +1,7 @@
 # E-commerce QA Automation
 
+[![Playwright Tests](https://github.com/harixzzzwork-collab/ecommerce-qa-automation/actions/workflows/playwright.yml/badge.svg?branch=main)](https://github.com/harixzzzwork-collab/ecommerce-qa-automation/actions/workflows/playwright.yml)
+
 A portfolio project demonstrating test design, browser automation,
 defect investigation, and regression testing using Playwright.
 
@@ -13,7 +15,8 @@ It does not process real payments or store real orders.
 - Latest verified local regression run: all 45 passed.
 - Three deliberately introduced defects reproduced, documented,
   fixed, and retested.
-- GitHub Actions workflow configured; first remote run pending.
+- GitHub Actions verified on Ubuntu: all 45 executions passed on 15 October 2026.
+- [Verified CI run](https://github.com/harixzzzwork-collab/ecommerce-qa-automation/actions/runs/38707622408) includes a saved HTML report artifact.
 
 ## Technology
 
