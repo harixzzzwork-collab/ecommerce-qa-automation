@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA Demo Shop</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: #f4f6fa; color: #172033;
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+    header { background: #172033; color: white; padding: 24px; }
+    header p { margin: 0; }
+    main { max-width: 1000px; margin: auto; padding: 24px; }
+    section {
+      background: white; padding: 24px; margin-bottom: 24px;
+      border-radius: 12px; border: 1px solid #dde3ed;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    #products {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px; margin-top: 20px;
+    }
+    article { border: 1px solid #dde3ed; border-radius: 8px; padding: 16px; }
+    label { display: block; margin-top: 12px; }
+    input, textarea {
+      display: block; width: 100%; padding: 10px;
+      border: 1px solid #8994a8; border-radius: 6px; font: inherit;
+    }
+    input[type="number"] { max-width: 100px; }
+    button {
+      background: #2459d3; color: white; padding: 10px 16px;
+      border: none; border-radius: 6px; cursor: pointer; margin-top: 12px;
+      font: inherit;
+    }
+    button:disabled { background: #667085; cursor: not-allowed; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid #f0a500; outline-offset: 3px;
+    }
+    .cart-row { padding: 16px 0; border-bottom: 1px solid #dde3ed; }
+    #checkout-error { color: #b42318; }
+    #order-status { color: #146c43; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>QA Demo Shop</h1>
+    <p>Practice store — no real payments or orders.</p>
+  </header>
+
+  <main>
+    <section aria-labelledby="catalog-heading">
+      <h2 id="catalog-heading">Products</h2>
+      <label for="search">Search products</label>
+      <input id="search" type="search" placeholder="Try mouse or keyboard">
+      <div id="products"></div>
+      <p id="no-results" hidden>No products found.</p>
+    </section>
+
+    <section aria-labelledby="cart-heading">
+      <h2 id="cart-heading">Your cart</h2>
+      <p>Maximum quantity: 5 per product. No tax or shipping charges.</p>
+      <div id="cart"></div>
+      <p>Cart total: ₹<strong data-testid="cart-total">0.00</strong></p>
+    </section>
+
+    <section aria-labelledby="checkout-heading">
+      <h2 id="checkout-heading">Checkout</h2>
+      <form id="checkout">
+        <label for="customer-name">Full name</label>
+        <input id="customer-name" required maxlength="80" autocomplete="name">
+
+        <label for="email">Email</label>
+        <input id="email" type="email" required autocomplete="email">
+
+        <label for="address">Delivery address</label>
+        <textarea id="address" required maxlength="300"
+                  autocomplete="street-address"></textarea>
+
+        <p id="checkout-error" role="alert"></p>
+        <button id="place-order" type="submit" disabled>Place demo order</button>
+      </form>
+      <p id="order-status" role="status"></p>
+    </section>
+  </main>
+
+  <script>
+    const products = [
+      { id: 1, name: 'Wireless Mouse', price: 499 },
+      { id: 2, name: 'Mechanical Keyboard', price: 1999 },
+      { id: 3, name: 'USB-C Hub', price: 1299 }
+    ];
+
+    const cart = new Map();
+    const find = selector => document.querySelector(selector);
+    const total = () => [...cart.values()].reduce(
+      (sum, item) => sum + item.price * item.quantity, 0
+    );
+
+    function renderProducts() {
+      const query = find('#search').value.trim().toLowerCase();
+      const matches = products.filter(
+        product => product.name.toLowerCase().includes(query)
+      );
+
+      find('#products').innerHTML = matches.map(product => `
+        <article aria-label="${product.name}">
+          <h3>${product.name}</h3>
+          <p>₹${product.price.toFixed(2)}</p>
+          <button type="button" data-add="${product.id}"
+                  aria-label="Add ${product.name} to cart">
+            Add to cart
+          </button>
+        </article>
+      `).join('');
+
+      find('#no-results').hidden = matches.length !== 0;
+    }
+
+    function renderCart() {
+      find('#cart').innerHTML = cart.size
+        ? [...cart.values()].map(item => `
+          <div class="cart-row">
+            <h3>${item.name}</h3>
+            <label for="qty-${item.id}">Quantity for ${item.name}</label>
+            <input id="qty-${item.id}" type="number" min="1" max="5"
+                   step="1" value="${item.quantity}" data-quantity="${item.id}">
+            <p>Subtotal: ₹${(item.price * item.quantity).toFixed(2)}</p>
+            <button type="button" data-remove="${item.id}"
+                    aria-label="Remove ${item.name} from cart">
+              Remove
+            </button>
+          </div>
+        `).join('')
+        : '<p>Your cart is empty.</p>';
+
+      find('[data-testid="cart-total"]').textContent = total().toFixed(2);
+      find('#place-order').disabled = cart.size === 0;
+    }
+
+    find('#search').addEventListener('input', renderProducts);
+
+    find('#products').addEventListener('click', event => {
+      const button = event.target.closest('[data-add]');
+      if (!button) return;
+
+      const id = Number(button.dataset.add);
+      const product = products.find(item => item.id === id);
+      const current = cart.get(id);
+
+      cart.set(id, {
+        ...product,
+        quantity: Math.min((current?.quantity ?? 0) + 1, 5)
+      });
+
+      find('#order-status').textContent = '';
+      renderCart();
+    });
+
+    find('#cart').addEventListener('click', event => {
+      const button = event.target.closest('[data-remove]');
+      if (!button) return;
+      cart.delete(Number(button.dataset.remove));
+      renderCart();
+    });
+
+    find('#cart').addEventListener('change', event => {
+      const input = event.target;
+      if (!input.matches('[data-quantity]')) return;
+
+      const item = cart.get(Number(input.dataset.quantity));
+      const quantity = Number(input.value);
+
+      if (Number.isInteger(quantity) && quantity >= 1 && quantity <= 5) {
+        item.quantity = quantity;
+      }
+
+      renderCart();
+    });
+
+    find('#checkout').addEventListener('submit', event => {
+      event.preventDefault();
+      find('#checkout-error').textContent = '';
+      find('#order-status').textContent = '';
+
+      if (cart.size === 0) return;
+
+      const name = find('#customer-name').value.trim();
+      const address = find('#address').value.trim();
+
+      if (!name || !address) {
+        find('#checkout-error').textContent =
+          'Name and address must contain more than spaces.';
+        return;
+      }
+
+      const amount = total().toFixed(2);
+      cart.clear();
+      renderCart();
+      find('#checkout').reset();
+      find('#order-status').textContent =
+        `Demo order confirmed! Total: ₹${amount}. No payment was taken.`;
+    });
+
+    renderProducts();
+    renderCart();
+  </script>
+</body>
+</html>
