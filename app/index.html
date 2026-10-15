@@ -99,7 +99,7 @@
     );
 
     function renderProducts() {
-      const query = find('#search').value.trim().toLowerCase();
+      const query = find('#search').value.trim();
       const matches = products.filter(
         product => product.name.toLowerCase().includes(query)
       );
