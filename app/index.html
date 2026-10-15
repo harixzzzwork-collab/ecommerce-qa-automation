@@ -95,7 +95,7 @@
     const cart = new Map();
     const find = selector => document.querySelector(selector);
     const total = () => [...cart.values()].reduce(
-  (sum, item) => sum + item.price, 0
+  (sum, item) => sum + item.price * item.quantity, 0
 );
 
     function renderProducts() {
